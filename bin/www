@@ -7,6 +7,8 @@
 var app = require('../app');
 var debug = require('debug')('websocket-demo:server');
 var http = require('http');
+var {parse} = require('url');
+var wss1 = require('../routes/ws');
 
 /**
  * Get port from environment and store in Express.
@@ -20,6 +22,19 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
+
+/**
+ * Connect WebSocket: upgrade
+ */
+
+server.on('upgrade', (request, socket, head) => {
+  const { pathname } = parse(request.url);
+  if(pathname === '/ws'){
+    wss1.handleUpgrade(request, socket, head, function done(ws) {
+      wss1.emit('connection', ws, request);
+    });
+  };
+});
 
 /**
  * Listen on provided port, on all network interfaces.
