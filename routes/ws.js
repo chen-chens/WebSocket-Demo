@@ -1,6 +1,10 @@
 const WebSocket = require("ws");
 const { v4: uuidv4 } = require('uuid');
 
+const source = {
+    petSitter: "保姆",
+    breeder: "飼主"
+}
 
 const wss1 = new WebSocket.WebSocketServer({ noServer: true });
 
@@ -13,7 +17,7 @@ wss1.on("connection", (ws) => {
     ws.uuid = uuid;
     const context = {
         uuid, // 用來辨認來源
-        source: "保姆",
+        source: source.petSitter,
         message: "您好，我是保姆 Joanna!",
     };
     ws.send(JSON.stringify(context));
