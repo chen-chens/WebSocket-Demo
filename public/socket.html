@@ -4,19 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebSocket Demo</title>
+
 </head>
 <body>
+    <h1>我收到保姆接單消息</h1>
+    <p>
+        Source uuid: <span id="uuid"></span><br />
+        Source: <span id="sourceName"></span><br />
+        Message: <span id="message"></span>
+    </p>
+    <hr />
     <input type="text" name="chatInput" id="chat">
-    <button type="submit" id="submitBtn">Send Message</button>
-    <p>Source uuid: <span id="uuid"></span></p>
-    <ul id="content"></ul>
+    <button type="submit" id="submitBtn">飼主回覆</button>
 
+    <ul id="content"></ul>
 
     <script>
         const WS_HOST = "ws://localhost:3000/ws";
         const input = document.getElementById("chat");
-        const button = document.getElementById("submitBtn");
+        const submitBtn = document.getElementById("submitBtn");
         const sourceId = document.getElementById("uuid");
+        const sourceName = document.getElementById("sourceName");
+        const message = document.getElementById("message");
         const content = document.getElementById("content");
 
         // 前端連線 WebSocket
@@ -24,6 +33,32 @@
         ws.onopen = (event) => {
             console.log(" --- 前端連線 WebSocket 連線成功 ---", event);
         };
+        const messageList = [];
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log(" --- 前端收到訊息 ---", data);
+            if(data.source === "保姆"){
+                sourceId.innerText = data.uuid;
+                sourceName.innerText = data.source;
+                message.innerText = data.message;
+            }else if(data.source === "飼主"){
+                messageList.push(data);
+                const chatRecords = messageList.map(item => (
+                    `<li>${item.message}</li>`
+                ));
+                content.innerHTML = chatRecords.join("");
+            }
+        }
+        // 前端傳送訊息
+        submitBtn.addEventListener('click', (event) => {
+            const value = input.value;
+            ws.send(JSON.stringify({
+                // uuid: uuidv4(), // 用來辨認來源
+                source: "飼主",
+                message: value,
+            }));
+            input.value = null;
+        })
     </script>
 </body>
 </html>
